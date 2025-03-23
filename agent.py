@@ -1,4 +1,3 @@
-# Import necessary libraries
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
@@ -18,26 +17,8 @@ A:
 Chichewa: Ndili bwino, zikomo
 English: I am fine, thank you
 
-
-You help users find information and check weather conditions.
+You help users find information.
 """
-
-# Define the weather tool
-@tool
-def get_weather(city: Literal["nyc", "sf", "toronto", "london", "nairobi"]):
-    """Use this to get weather information for specific cities."""
-    weather_data = {
-        "nyc": "It might be cloudy in NYC with temperatures around 65°F.",
-        "sf": "It's sunny in San Francisco with temperatures around 70°F.",
-        "toronto": "It's currently snowing in Toronto with temperatures around 28°F.",
-        "london": "It's rainy in London with temperatures around 55°F.",
-        "nairobi": "It's warm and partly cloudy in Nairobi with temperatures around 75°F."
-    }
-    
-    if city.lower() in weather_data:
-        return weather_data[city.lower()]
-    else:
-        return f"Weather data for {city} is not available. Available cities are: nyc, sf, toronto, london, and nairobi."
 
 # Define the search tool
 @tool
@@ -59,10 +40,10 @@ def search(query: str):
     return f"Searched for '{query}'. Here are some general facts about this topic. [This is a mock search response for demonstration purposes.]"
 
 # Collect the tools
-tools = [get_weather, search]
+tools = [search]
 
 # Initialize the language model
-model = ChatOpenAI(model="gpt-4o", temperature=0)
+model = ChatOpenAI(model="gpt-4", temperature=0)
 
 # Create the ReAct agent
 graph = create_react_agent(model, tools=tools, prompt=system_prompt)
@@ -78,18 +59,12 @@ def print_stream(stream):
 
 # Example usage
 if __name__ == "__main__":
-    print("Example 1: Weather Query")
-    inputs = {"messages": [("user", "what is the weather in New York?")]}
-    print_stream(graph.stream(inputs, stream_mode="values"))
-    
-    print(f"\n\n{'==='*20}\n\n")
-    
-    print("Example 2: Search Query")
+    print("Example 1: Search Query")
     inputs = {"messages": [("user", "tell me about the population of New York")]}
     print_stream(graph.stream(inputs, stream_mode="values"))
     
     print(f"\n\n{'==='*20}\n\n")
     
-    print("Example 3: Combined Query")
-    inputs = {"messages": [("user", "compare the weather in nyc and nairobi, and tell me about famous landmarks in both cities")]}
+    print("Example 2: Landmarks Query")
+    inputs = {"messages": [("user", "what are some famous landmarks in New York?")]}
     print_stream(graph.stream(inputs, stream_mode="values"))

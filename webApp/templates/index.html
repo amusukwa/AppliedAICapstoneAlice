@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Search Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #5f6368;
+            margin: 0;
+        }
+
+        #chat-container {
+            border: 1px solid #dfe1e5;
+            border-radius: 10px;
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+            color: #1a73e8;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .assistant-message {
+            background-color: #f8f9fa;
+            margin-right: auto;
+            color: #202124;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #input-container {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        #user-input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #dfe1e5;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #user-input:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1557b0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #5f6368;
+            padding: 10px;
+        }
+
+        .error-message {
+            color: #d93025;
+            background-color: #fce8e6;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        /* Typing indicator animation */
+        .typing-indicator {
+            display: none;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #90909090;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: typing 1s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Book Search Assistant</h1>
+        <p>Ask me about books in English or Chichewa!</p>
+    </div>
+
+    <div id="chat-container"></div>
+    
+    <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div id="input-container">
+        <input type="text" id="user-input" placeholder="Type your message here...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const inputElement = document.getElementById('user-input');
+        const typingIndicator = document.querySelector('.typing-indicator');
+
+        function appendMessage(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'block';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        async function sendMessage() {
+            const message = inputElement.value.trim();
+            
+            if (!message) return;
+            
+            appendMessage(message, true);
+            inputElement.value = '';
+            showTypingIndicator();
+
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                hideTypingIndicator();
+                
+                if (data.error) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = 'Error: ' + data.error;
+                    chatContainer.appendChild(errorDiv);
+                } else {
+                    data.responses.forEach(resp => {
+                        appendMessage(resp.content, false);
+                    });
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Error: Could not connect to server';
+                chatContainer.appendChild(errorDiv);
+            }
+
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Allow Enter key to send message
+        inputElement.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Focus input on page load
+        window.onload = function() {
+            inputElement.focus();
+        };
+    </script>
+</body>
+</html>

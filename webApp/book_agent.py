@@ -33,6 +33,7 @@ You can search for books by:
 - Specific titles
 - Genre
 - General availability
+- Similar book recommendations
 
 """
 
@@ -77,12 +78,37 @@ def search_books_by_genre(genre: str):
         return f"Here are popular books in the {genre} genre:\n{results}"
     return f"No trending books found in the {genre} genre."
 
+
+@tool
+def find_similar_books(book_title: str):
+    """Find books similar to a given title."""
+    search_query = f"books similar to {book_title} recommendations"
+    results = search.run(search_query)
+    return f"If you liked {book_title}, you might enjoy:\n{results}"
+
+@tool
+def get_author_info(author_name: str):
+    """Get information about an author and their works."""
+    search_query = f"{author_name} author biography books written"
+    results = search.run(search_query)
+    return f"Information about {author_name}:\n{results}"
+
+@tool
+def get_book_club_suggestions():
+    """Get book recommendations suitable for book clubs."""
+    search_query = "best book club books discussion worthy current"
+    results = search.run(search_query)
+    return f"Recommended books for book clubs:\n{results}"
+
 # Collect all tools
 tools = [
     search_trending_books,
     check_book_availability,
     get_all_available_books,
-    search_books_by_genre
+    search_books_by_genre,
+    get_author_info,
+    get_book_club_suggestions
+    
 ]
 
 # Initialize the language model

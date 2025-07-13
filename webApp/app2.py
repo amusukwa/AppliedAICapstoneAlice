@@ -3,7 +3,9 @@ from flask_cors import CORS
 import json
 
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 
 # Import the agent and tools from the previous code
 # Assuming the previous code is saved in a file named 'book_agent.py'

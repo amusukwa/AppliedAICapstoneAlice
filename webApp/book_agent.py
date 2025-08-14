@@ -99,6 +99,33 @@ def get_book_club_suggestions():
     search_query = "best book club books discussion worthy current"
     results = search.run(search_query)
     return f"Recommended books for book clubs:\n{results}"
+@tool
+def compare_book_prices(book_title: str):
+    """Compare book prices across different platforms."""
+    search_query = f"{book_title} book price comparison amazon barnes noble"
+    results = search.run(search_query)
+    return f"Price comparison for {book_title}:\n{results}"
+
+
+# @tool
+# def get_book_club_suggestions():
+#     """Get aggregated book club suggestions from multiple trusted sources"""
+#     sources = [
+#         "Oprah's Book Club latest selections",
+#         "Reese Witherspoon Book Club picks",
+#         "NY Times Book Review editor's choices for book clubs",
+#         "Goodreads Choice Awards for Fiction"
+#     ]
+    
+    all_results = []
+    for source in sources:
+        # Get top 1 result from each source (GoogleSearchAPIWrapper doesn't support max_results)
+        results = search.run(f"{source} 2023 OR 2024")
+        all_results.append(results)
+    
+    # Remove duplicates and format
+    unique_results = list(set(all_results))
+    return "Curated Book Club Selections from Trusted Sources:\n" + "\n".join(unique_results)
 
 # Collect all tools
 tools = [
@@ -107,8 +134,8 @@ tools = [
     get_all_available_books,
     search_books_by_genre,
     get_author_info,
-    get_book_club_suggestions
-    
+    get_book_club_suggestions,
+    compare_book_prices
 ]
 
 # Initialize the language model
